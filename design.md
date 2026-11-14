@@ -46,3 +46,30 @@ User -> FastAPI -> Agent loop -> (LLM <-> web_search tool) -> Memory (SQLite) ->
 - Blocking sqlite3 calls run via asyncio.to_thread to keep the event loop free.
 - Known limits: single-user (no auth), concurrent requests in one conversation
   can interleave, and old history beyond the window is not summarised.
+
+  ## Speed and accuracy (Phase 4)
+**Speed**
+- Streaming (SSE) via an async-generator agent loop: user sees words in ~1s
+  instead of waiting for the whole answer. Time-to-first-token is measured
+  and returned (`first_token_ms`).
+- Search results cached in memory (5 min TTL, normalised key, size-capped,
+  errors never cached). Tradeoff: answers can be up to 5 minutes stale.
+- Parallel tool calls (asyncio.gather) and short snippets keep LLM input small.
+- Search timeout 8s per attempt so retries fit within the request budget.
+
+**Reliability**
+- Search: up to 3 attempts with exponential backoff, only for timeouts / 429 / 5xx.
+  Auth and bad-request errors fail fast.
+- LLM client: SDK retries (max_retries=2) on 429/5xx.
+- Mid-stream failures are sent as an SSE `error` event (status is already 200).
+
+**Accuracy (grounding)**
+- Every search result gets a stable numeric id; the model must cite [id].
+- Code verifies citations: nonexistent ids are stripped and a `grounding` label
+  (cited / uncited / search_failed / not_needed) is returned with each answer.
+- Rejected: a second "judge" LLM call per answer (doubles latency and cost).
+  Used offline in evals instead.
+- Known limit: this proves citations exist, not that a snippet fully supports
+  the claim. Phase 5 evals measure that.
+- Known limit: the cache is per-process, so it is lost on restart and not shared
+  across workers. At scale I would use Redis.
