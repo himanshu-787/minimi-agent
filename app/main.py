@@ -6,10 +6,12 @@ import time
 import uuid
 from contextlib import asynccontextmanager
 from dataclasses import asdict
+from pathlib import Path
 
 import anthropic
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import StreamingResponse
+# from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from app.agent.loop import run_agent, stream_agent
@@ -28,7 +30,12 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="minimi chat agent", lifespan=lifespan)
+FRONTEND = Path(__file__).resolve().parent.parent / "frontend" / "index.html"
 
+
+@app.get("/", include_in_schema=False)
+def index():
+    return FileResponse(FRONTEND)
 
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=4000)

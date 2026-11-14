@@ -73,3 +73,27 @@ User -> FastAPI -> Agent loop -> (LLM <-> web_search tool) -> Memory (SQLite) ->
   the claim. Phase 5 evals measure that.
 - Known limit: the cache is per-process, so it is lost on restart and not shared
   across workers. At scale I would use Redis.
+
+  ## Frontend (Phase 5)
+- Single static HTML file served by FastAPI at `/`: no build step, same origin
+  (no CORS), one deployable unit.
+- Reads the POST SSE stream with fetch + ReadableStream (EventSource is GET-only).
+- `searching` event clears the model's preamble; `done` re-renders the verified
+  answer, so the screen always matches what was saved.
+- All model/web text is inserted via textContent (no XSS); citation links only
+  render for ids the server verified and only for http(s) URLs.
+- UI shows trust signals: grounding badge, source chips, latency and first-word time.
+- Conversation id kept in localStorage; history restored from the API on reload.
+
+## Evals (Phase 5)
+- `evals/cases.json` + `evals/run_evals.py` run 10 cases against the real server.
+- Deterministic checks: search-or-not, expected content, grounding label,
+  minimum sources, no leaked internal timestamp format.
+- LLM judge (offline only) for fuzzy cases: time recall and not fabricating memories.
+- Multi-turn cases cover short-term memory and cross-conversation recall.
+- Reports pass rate and latency (p50 with/without search, p95, first token).
+- Results (fill in from `evals/results.json`): X/10 pass, first token ~Xms,
+  no-search p50 ~Xms, search p50 ~Xms.
+- Limits: small suite, one run (model output varies, so results can flicker),
+  judge is itself a model, and live-news cases can only check behaviour and
+  citations, not truth.

@@ -1,0 +1,72 @@
+[
+  {
+    "id": "greeting_no_search",
+    "turns": [{ "say": "Hi! Who are you?", "expect_search": false }]
+  },
+  {
+    "id": "math_no_search",
+    "turns": [{ "say": "What is 15% of 240?", "expect_search": false, "must_contain_any": ["36"] }]
+  },
+  {
+    "id": "date_comes_from_prompt",
+    "turns": [{ "say": "What year is it right now?", "expect_search": false, "must_contain_any": ["{year}"] }]
+  },
+  {
+    "id": "news_needs_search_and_citations",
+    "turns": [{
+      "say": "What are the top tech news stories today?",
+      "expect_search": true,
+      "grounding_in": ["cited"],
+      "min_sources": 1
+    }]
+  },
+  {
+    "id": "recent_sports_needs_search",
+    "turns": [{
+      "say": "Who won the most recent Formula 1 Grand Prix?",
+      "expect_search": true,
+      "grounding_in": ["cited"],
+      "min_sources": 1
+    }]
+  },
+  {
+    "id": "stable_fact_correct",
+    "turns": [{
+      "say": "Who won the 2022 FIFA World Cup final, and in which country was it played?",
+      "must_contain_any": ["Argentina"]
+    }]
+  },
+  {
+    "id": "short_term_memory",
+    "turns": [
+      { "say": "My name is Himan and I am learning Rust." },
+      { "say": "What am I learning?", "expect_search": false, "must_contain_any": ["Rust"] },
+      { "say": "What is my name?", "expect_search": false, "must_contain_any": ["Himan"] }
+    ]
+  },
+  {
+    "id": "time_recall_in_same_chat",
+    "turns": [
+      { "say": "I am testing whether you can recall timing." },
+      {
+        "say": "How long ago did I send my first message in this chat?",
+        "rubric": "The answer gives a short, plausible duration (seconds or a few minutes) or says it was just now. It must not claim hours or days."
+      }
+    ]
+  },
+  {
+    "id": "cross_chat_recall",
+    "turns": [
+      { "say": "I am planning a trip to Jaipur next month. Any tips?" },
+      { "new_conversation": true, "say": "What did I ask you about earlier today?", "must_contain_any": ["Jaipur"] }
+    ]
+  },
+  {
+    "id": "no_fabricated_memory",
+    "turns": [{
+      "new_conversation": true,
+      "say": "What was the very first question I ever asked you, back in 2023?",
+      "rubric": "The assistant must NOT invent a question from 2023. Acceptable: saying it has no record that far back, or mentioning only recent questions with their recent dates."
+    }]
+  }
+]
