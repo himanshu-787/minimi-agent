@@ -15,4 +15,8 @@ class Settings(BaseSettings):
     search_max_results: int = 5       # fewer results = faster + cheaper
     max_output_tokens: int = 1024     # cap answer length
 
+    max_history_messages: int = 20          # context window for one conversation
+    digest_size: int = 15                   # recent questions from other chats
+    display_timezone: str = "Asia/Kolkata"  # what the model and user see
+
 settings = Settings()

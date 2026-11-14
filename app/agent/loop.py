@@ -31,13 +31,14 @@ async def _run_tool(block, search_fn) -> dict:
     return await search_fn(query)
 
 
-async def run_agent(messages: list[dict], client=None, search_fn=web_search) -> AgentResult:
+async def run_agent(messages: list[dict], client=None, search_fn=web_search,
+                    memory_digest: str = "") -> AgentResult:
     # client and search_fn are injectable so tests can fake them (see tests/).
     client = client or AsyncAnthropic(
         api_key=settings.anthropic_api_key, timeout=settings.request_timeout_s
     )
     messages = list(messages)  # never mutate the caller's list
-    system = build_system_prompt()
+    system = build_system_prompt(memory_digest)
     sources: dict[str, dict] = {}   # keyed by URL so duplicates vanish
     searches: list[str] = []
 

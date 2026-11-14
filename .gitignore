@@ -28,5 +28,5 @@ Thumbs.db
 *.sqlite3
 
 # Generated files
-data/*
+data/*.db*
 !data/.gitkeep
