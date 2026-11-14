@@ -12,5 +12,7 @@ class Settings(BaseSettings):
     request_timeout_s: float = 20.0   # never let a slow call hang forever
     max_agent_steps: int = 4          # stops infinite tool-calling loops
 
+    search_max_results: int = 5       # fewer results = faster + cheaper
+    max_output_tokens: int = 1024     # cap answer length
 
 settings = Settings()
