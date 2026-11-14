@@ -56,3 +56,11 @@ def test_memory_survives_restart(tmp_path):
 def test_timestamp_shown_in_local_time():
     shown = format_ts("2026-11-14T00:00:00+00:00")
     assert "05:30" in shown and "IST" in shown
+
+
+def test_digest_is_scoped_to_client(tmp_path):
+    s = make_store(tmp_path)
+    s.save_turn("c1", "alice question", "2026-11-14T09:00:00+00:00", "a", client_id="alice")
+    s.save_turn("c2", "bob question", "2026-11-14T09:01:00+00:00", "a", client_id="bob")
+    rows = s.recent_user_questions(10, client_id="alice")
+    assert [r["content"] for r in rows] == ["alice question"]

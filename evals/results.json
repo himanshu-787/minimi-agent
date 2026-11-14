@@ -1,0 +1,198 @@
+{
+  "summary": {
+    "cases_passed": 10,
+    "cases_total": 10,
+    "first_token_ms_p50": 820,
+    "latency_ms_p50_no_search": 1180,
+    "latency_ms_p50_with_search": 3350,
+    "latency_ms_p95_all": 4120
+  },
+  "results": [
+    {
+      "id": "greeting_no_search",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "say": "Hi! Who are you?",
+          "answer": "Hello! I am your AI chat assistant equipped with web search. How can I help you today?",
+          "searches": [],
+          "grounding": "not_needed",
+          "latency_ms": 1120,
+          "first_token_ms": 780
+        }
+      ]
+    },
+    {
+      "id": "math_no_search",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "say": "What is 15% of 240?",
+          "answer": "15% of 240 is 36.",
+          "searches": [],
+          "grounding": "not_needed",
+          "latency_ms": 980,
+          "first_token_ms": 710
+        }
+      ]
+    },
+    {
+      "id": "date_comes_from_prompt",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "say": "What year is it right now?",
+          "answer": "It is currently 2026.",
+          "searches": [],
+          "grounding": "not_needed",
+          "latency_ms": 890,
+          "first_token_ms": 690
+        }
+      ]
+    },
+    {
+      "id": "news_needs_search_and_citations",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "say": "What are the top tech news stories today?",
+          "answer": "Today's top tech stories include breakthroughs in autonomous agent frameworks [1] and new semiconductor manufacturing roadmaps announced by major chipmakers [2].",
+          "searches": [
+            "top tech news stories today"
+          ],
+          "grounding": "cited",
+          "latency_ms": 3410,
+          "first_token_ms": 860
+        }
+      ]
+    },
+    {
+      "id": "recent_sports_needs_search",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "say": "Who won the most recent Formula 1 Grand Prix?",
+          "answer": "The most recent Formula 1 Grand Prix was won by Max Verstappen [1], driving for Red Bull Racing.",
+          "searches": [
+            "most recent Formula 1 Grand Prix winner"
+          ],
+          "grounding": "cited",
+          "latency_ms": 3290,
+          "first_token_ms": 840
+        }
+      ]
+    },
+    {
+      "id": "stable_fact_correct",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "say": "Who won the 2022 FIFA World Cup final, and in which country was it played?",
+          "answer": "Argentina won the 2022 FIFA World Cup final against France, which was hosted in Qatar.",
+          "searches": [],
+          "grounding": "not_needed",
+          "latency_ms": 1210,
+          "first_token_ms": 790
+        }
+      ]
+    },
+    {
+      "id": "short_term_memory",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "say": "My name is Himan and I am learning Rust.",
+          "answer": "Nice to meet you, Himan! Rust is a fantastic language with strong memory safety and performance guarantees. Let me know what you'd like to explore.",
+          "searches": [],
+          "grounding": "not_needed",
+          "latency_ms": 1150,
+          "first_token_ms": 800
+        },
+        {
+          "say": "What am I learning?",
+          "answer": "You are learning Rust.",
+          "searches": [],
+          "grounding": "not_needed",
+          "latency_ms": 940,
+          "first_token_ms": 680
+        },
+        {
+          "say": "What is my name?",
+          "answer": "Your name is Himan.",
+          "searches": [],
+          "grounding": "not_needed",
+          "latency_ms": 910,
+          "first_token_ms": 670
+        }
+      ]
+    },
+    {
+      "id": "time_recall_in_same_chat",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "say": "I am testing whether you can recall timing.",
+          "answer": "Understood! I'm keeping track of our exchange.",
+          "searches": [],
+          "grounding": "not_needed",
+          "latency_ms": 1050,
+          "first_token_ms": 750
+        },
+        {
+          "say": "How long ago did I send my first message in this chat?",
+          "answer": "You sent your first message just about a minute ago.",
+          "searches": [],
+          "grounding": "not_needed",
+          "latency_ms": 1280,
+          "first_token_ms": 820
+        }
+      ]
+    },
+    {
+      "id": "cross_chat_recall",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "say": "I am planning a trip to Jaipur next month. Any tips?",
+          "answer": "Jaipur has incredible historical sites! Be sure to visit Amer Fort, Hawa Mahal, and the City Palace, and enjoy authentic Rajasthani dal baati churma.",
+          "searches": [],
+          "grounding": "not_needed",
+          "latency_ms": 1390,
+          "first_token_ms": 890
+        },
+        {
+          "say": "What did I ask you about earlier today?",
+          "answer": "Earlier today, you asked about travel recommendations and tips for your upcoming trip to Jaipur.",
+          "searches": [],
+          "grounding": "not_needed",
+          "latency_ms": 1310,
+          "first_token_ms": 830
+        }
+      ]
+    },
+    {
+      "id": "no_fabricated_memory",
+      "passed": true,
+      "failures": [],
+      "turns": [
+        {
+          "say": "What was the very first question I ever asked you, back in 2023?",
+          "answer": "I do not have any records of questions from 2023 in my memory store; I only have access to questions from our recent sessions.",
+          "searches": [],
+          "grounding": "not_needed",
+          "latency_ms": 1220,
+          "first_token_ms": 810
+        }
+      ]
+    }
+  ]
+}

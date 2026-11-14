@@ -31,7 +31,7 @@ def fill(s: str) -> str:
 
 async def ask(http: httpx.AsyncClient, base: str, message: str, cid: str | None) -> dict:
     """Send one message to /chat/stream and collect everything that comes back."""
-    payload = {"message": message}
+    payload = {"message": message, "client_id": "eval-client"}
     if cid:
         payload["conversation_id"] = cid
     out = {"cid": cid, "answer": "", "searches": [], "sources": [], "grounding": "",

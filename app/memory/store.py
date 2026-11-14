@@ -8,7 +8,8 @@ from app.timeutil import format_ts, now_iso
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS conversations (
     id         TEXT PRIMARY KEY,
-    created_at TEXT NOT NULL
+    created_at TEXT NOT NULL,
+    client_id  TEXT
 );
 CREATE TABLE IF NOT EXISTS messages (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,15 +38,21 @@ class MemoryStore:
         with closing(self._connect()) as conn:
             conn.execute("PRAGMA journal_mode = WAL")  # readers don't block the writer
             conn.executescript(SCHEMA)
+            # Migration: databases created in Phase 3 lack the client_id column.
+            cols = [r["name"] for r in conn.execute("PRAGMA table_info(conversations)")]
+            if "client_id" not in cols:
+                conn.execute("ALTER TABLE conversations ADD COLUMN client_id TEXT")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_conv_client ON conversations (client_id)")
 
     def save_turn(self, conversation_id: str, user_text: str, user_ts: str,
-                  assistant_text: str, meta: dict | None = None) -> None:
+                  assistant_text: str, meta: dict | None = None,
+                  client_id: str | None = None) -> None:
         """Save the user message and the answer atomically: both or neither."""
         with closing(self._connect()) as conn:
             with conn:  # one transaction
                 conn.execute(
-                    "INSERT OR IGNORE INTO conversations (id, created_at) VALUES (?, ?)",
-                    (conversation_id, user_ts),
+                    "INSERT OR IGNORE INTO conversations (id, created_at, client_id) VALUES (?, ?, ?)",
+                    (conversation_id, user_ts, client_id),
                 )
                 conn.execute(
                     "INSERT INTO messages (conversation_id, role, content, meta, created_at) "
@@ -74,14 +81,19 @@ class MemoryStore:
             history.pop(0)
         return history
 
-    def recent_user_questions(self, limit: int, exclude_conversation: str | None = None) -> list[dict]:
-        """Newest-first questions the user asked, across conversations."""
-        query = "SELECT content, created_at FROM messages WHERE role = 'user'"
+    def recent_user_questions(self, limit: int, exclude_conversation: str | None = None,
+                              client_id: str | None = None) -> list[dict]:
+        """Newest-first questions. With client_id, only that client's own questions."""
+        query = ("SELECT m.content, m.created_at FROM messages m "
+                 "JOIN conversations c ON c.id = m.conversation_id WHERE m.role = 'user'")
         args: list = []
+        if client_id is not None:
+            query += " AND c.client_id = ?"
+            args.append(client_id)
         if exclude_conversation:
-            query += " AND conversation_id != ?"
+            query += " AND m.conversation_id != ?"
             args.append(exclude_conversation)
-        query += " ORDER BY id DESC LIMIT ?"
+        query += " ORDER BY m.id DESC LIMIT ?"
         args.append(limit)
         with closing(self._connect()) as conn:
             return [dict(r) for r in conn.execute(query, args).fetchall()]

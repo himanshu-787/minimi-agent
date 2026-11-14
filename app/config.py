@@ -19,11 +19,14 @@ class Settings(BaseSettings):
     digest_size: int = 15                   # recent questions from other chats
     display_timezone: str = "Asia/Kolkata"  # what the model and user see
 
-        search_timeout_s: float = 8.0     # per attempt; short so retries still fit in budget
+    search_timeout_s: float = 8.0     # per attempt; short so retries still fit in budget
     search_retries: int = 2           # up to 3 attempts total
     search_backoff_s: float = 0.4     # waits 0.4s, then 0.8s
     search_cache_ttl_s: int = 300     # cache lifetime: 5 minutes
     search_cache_max: int = 256       # max cached queries
     llm_max_retries: int = 2          # the Anthropic SDK retries 429/5xx itself
+
+    rate_limit_per_min: int = 20      # requests per IP per minute
+
 
 settings = Settings()
