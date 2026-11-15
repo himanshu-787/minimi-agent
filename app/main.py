@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from dataclasses import asdict
 from pathlib import Path
 
-import anthropic
+import groq
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
@@ -97,7 +97,7 @@ def health():
     return {
         "status": "ok",
         "model": settings.model_name,
-        "has_api_key": bool(settings.anthropic_api_key),
+        "has_api_key": bool(settings.groq_api_key),
         "has_search_key": bool(settings.search_api_key),
     }
 
@@ -108,10 +108,12 @@ async def chat(req: ChatRequest):
     cid, asked_at, messages, digest, client_id = await _prepare(req)
     try:
         result = await run_agent(messages, memory_digest=digest)
-    except anthropic.APITimeoutError:
+    except groq.APITimeoutError:
+        log.exception("Groq API timeout")
         raise HTTPException(504, "The model took too long to respond. Please try again.")
-    except anthropic.APIError:
-        raise HTTPException(502, "The model service had a problem. Please try again.")
+    except groq.APIError as err:
+        log.exception("Groq API error: %s", err)
+        raise HTTPException(502, f"The model service had a problem: {err}")
     await _save(cid, req.message, asked_at, result, client_id)
     return ChatResponse(
         conversation_id=cid, latency_ms=int((time.perf_counter() - t0) * 1000), **asdict(result)
@@ -144,10 +146,12 @@ async def chat_stream(req: ChatRequest):
                         "latency_ms": int((time.perf_counter() - t0) * 1000),
                         "first_token_ms": first_token_ms,
                     })
-        except anthropic.APITimeoutError:
+        except groq.APITimeoutError:
+            log.exception("Groq stream timeout")
             yield _sse("error", {"message": "The model took too long to respond. Please try again."})
-        except anthropic.APIError:
-            yield _sse("error", {"message": "The model service had a problem. Please try again."})
+        except groq.APIError as err:
+            log.exception("Groq API error: %s", err)
+            yield _sse("error", {"message": f"Model service error ({err.__class__.__name__}): {err.message if hasattr(err, 'message') else err}"})
         except Exception:
             log.exception("Unexpected error while streaming")
             yield _sse("error", {"message": "Something went wrong. Please try again."})

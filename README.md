@@ -17,7 +17,7 @@ A fast, accurate, production-grade chat agent with one tool: **web search**. Bui
 ## Architecture
 
 ```
-User (Browser) ──► FastAPI (/chat/stream, SSE) ──► stream_agent() ──► Claude (anthropic)
+User (Browser) ──► FastAPI (/chat/stream, SSE) ──► stream_agent() ──► Groq API
                           │                              │                    ▲
                      Rate Limiter                        ▼                    │
                    (sliding window)               web_search (Tavily) ────────┘
@@ -80,8 +80,8 @@ cp .env.example .env
 
 Edit `.env`:
 ```env
-ANTHROPIC_API_KEY=your-anthropic-api-key
-MODEL_NAME=claude-sonnet-5-5
+GROQ_API_KEY=your-groq-api-key
+MODEL_NAME=qwen/qwen3.8-27b
 SEARCH_API_KEY=your-tavily-search-api-key
 ```
 
@@ -130,7 +130,7 @@ docker build -t minimi-agent .
 docker run -p 8000:8000 --env-file .env minimi-agent
 ```
 
-You can deploy directly to platforms like **Render**, **Railway**, or **Fly.io** by connecting the GitHub repository and adding `ANTHROPIC_API_KEY` and `SEARCH_API_KEY` in the platform's environment settings.
+You can deploy directly to platforms like **Render**, **Railway**, or **Fly.io** by connecting the GitHub repository and adding `GROQ_API_KEY` and `SEARCH_API_KEY` in the platform's environment settings.
 
 ---
 

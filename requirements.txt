@@ -1,7 +1,7 @@
 fastapi
 uvicorn[standard]
 pydantic-settings
-anthropic
+groq
 httpx
 pytest
 tzdata

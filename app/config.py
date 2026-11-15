@@ -4,8 +4,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    anthropic_api_key: str = ""
-    model_name: str = "claude-sonnet-5-5"
+    groq_api_key: str = ""
+    model_name: str = "qwen/qwen3.8-27b"
     search_api_key: str = ""
 
     db_path: str = "data/chat.db"
@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     search_backoff_s: float = 0.4     # waits 0.4s, then 0.8s
     search_cache_ttl_s: int = 300     # cache lifetime: 5 minutes
     search_cache_max: int = 256       # max cached queries
-    llm_max_retries: int = 2          # the Anthropic SDK retries 429/5xx itself
+    llm_max_retries: int = 2          # the Groq SDK retries 429/5xx itself
 
     rate_limit_per_min: int = 20      # requests per IP per minute
 

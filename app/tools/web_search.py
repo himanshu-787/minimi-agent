@@ -8,21 +8,24 @@ from app.config import settings
 TAVILY_URL = "https://api.tavily.com/search"
 
 WEB_SEARCH_TOOL = {
-    "name": "web_search",
-    "description": (
-        "Search the web for current or factual information. Use it for recent "
-        "events, prices, news, anything time-sensitive, or any fact you are not "
-        "sure about. Do not use it for greetings, math, or things you know well."
-    ),
-    "input_schema": {
-        "type": "object",
-        "properties": {
-            "query": {
-                "type": "string",
-                "description": "A short, specific search query (3-8 words works best).",
-            }
+    "type": "function",
+    "function": {
+        "name": "web_search",
+        "description": (
+            "Search the web for current or factual information. Use it for recent "
+            "events, prices, news, anything time-sensitive, or any fact you are not "
+            "sure about. Do not use it for greetings, math, or things you know well."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "A short, specific search query (3-8 words works best).",
+                }
+            },
+            "required": ["query"],
         },
-        "required": ["query"],
     },
 }
 

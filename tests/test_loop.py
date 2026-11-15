@@ -1,49 +1,66 @@
 import asyncio
+import json
 from types import SimpleNamespace as NS
 
 from app.agent.loop import run_agent, stream_agent
 
 
-class FakeStream:
-    """Imitates anthropic's `async with client.messages.stream(...)`."""
-    def __init__(self, response):
-        self.response = response
+class FakeDelta:
+    def __init__(self, content=None, tool_calls=None):
+        self.content = content
+        self.tool_calls = tool_calls
 
-    async def __aenter__(self):
+
+class FakeChoice:
+    def __init__(self, delta, finish_reason=None):
+        self.delta = delta
+        self.finish_reason = finish_reason
+
+
+class FakeChunk:
+    def __init__(self, content=None, tool_calls=None, finish_reason=None):
+        self.choices = [FakeChoice(FakeDelta(content=content, tool_calls=tool_calls), finish_reason=finish_reason)]
+
+
+class FakeStream:
+    """Imitates Groq's async stream chunks."""
+    def __init__(self, chunks):
+        self.chunks = list(chunks)
+
+    def __aiter__(self):
         return self
 
-    async def __aexit__(self, *exc):
-        return False
-
-    @property
-    def text_stream(self):
-        async def gen():
-            for b in self.response.content:
-                if b.type == "text":
-                    yield b.text
-        return gen()
-
-    async def get_final_message(self):
-        return self.response
+    async def __anext__(self):
+        if not self.chunks:
+            raise StopAsyncIteration
+        return self.chunks.pop(0)
 
 
 class FakeClient:
     def __init__(self, responses):
         self.responses = list(responses)
-        self.messages = self
+        self.chat = NS(completions=self)
 
-    def stream(self, **kwargs):
+    async def create(self, **kwargs):
         return FakeStream(self.responses.pop(0))
 
 
 def tool_call(query):
-    return NS(stop_reason="tool_use", content=[
-        NS(type="tool_use", id="t1", name="web_search", input={"query": query})
-    ])
+    tc = NS(
+        index=0,
+        id="t1",
+        function=NS(name="web_search", arguments=json.dumps({"query": query})),
+    )
+    return [
+        FakeChunk(tool_calls=[tc], finish_reason="tool_calls"),
+    ]
 
 
 def final(text):
-    return NS(stop_reason="end_turn", content=[NS(type="text", text=text)])
+    return [
+        FakeChunk(content=text),
+        FakeChunk(finish_reason="stop"),
+    ]
 
 
 async def fake_search(query):

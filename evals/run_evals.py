@@ -13,7 +13,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import httpx
-from anthropic import AsyncAnthropic
+from groq import AsyncGroq
 
 from app.config import settings
 
@@ -89,18 +89,27 @@ def check(turn: dict, r: dict) -> list[str]:
     return fails
 
 
-async def judge(llm: AsyncAnthropic, question: str, answer: str, rubric: str) -> tuple[bool, str]:
+async def judge(llm: AsyncGroq, question: str, answer: str, rubric: str) -> tuple[bool, str]:
     """A second model grades the answer against a rubric. Offline only."""
     try:
-        resp = await llm.messages.create(
+        resp = await llm.chat.completions.create(
             model=settings.model_name,
             max_tokens=200,
-            system="You are a strict grader. Reply with ONLY a JSON object: "
-                   '{"pass": true or false, "reason": "one short sentence"}.',
-            messages=[{"role": "user", "content":
-                       f"Question: {question}\n\nAnswer: {answer}\n\nRubric: {rubric}"}],
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a strict grader. Reply with ONLY a JSON object: "
+                        '{"pass": true or false, "reason": "one short sentence"}.'
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": f"Question: {question}\n\nAnswer: {answer}\n\nRubric: {rubric}",
+                },
+            ],
         )
-        text = "".join(b.text for b in resp.content if b.type == "text")
+        text = resp.choices[0].message.content or ""
         verdict = json.loads(re.search(r"\{.*\}", text, re.S).group(0))
         return bool(verdict["pass"]), str(verdict.get("reason", ""))
     except Exception as e:  # a broken judge must not crash the whole run
@@ -154,7 +163,7 @@ async def main() -> int:
     args = ap.parse_args()
 
     cases = json.loads(CASES.read_text(encoding="utf-8"))
-    llm = AsyncAnthropic(api_key=settings.anthropic_api_key)
+    llm = AsyncGroq(api_key=settings.groq_api_key)
 
     async with httpx.AsyncClient(timeout=90) as http:
         try:
